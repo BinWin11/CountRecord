@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f17" />
+  <title>100次计数器（多主题）</title>
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --card:#121a26;
+      --card2:#0f1621;
+      --text:#e6edf6;
+      --muted:#9fb0c4;
+      --accent:#4ea1ff;
+      --danger:#ff4e5b;
+      --ok:#21c07a;
+      --border:rgba(255,255,255,.08);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:18px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+    }
+    *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+    body{
+      margin:0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 0%, rgba(78,161,255,.25), transparent 55%),
+                  radial-gradient(900px 700px at 110% 40%, rgba(33,192,122,.18), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right)) calc(18px + var(--safe-bottom)) calc(16px + var(--safe-left));
+      overflow-x:hidden;
+    }
+    .app{
+      max-width: 520px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .titleWrap{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width: 0;
+    }
+    .title{
+      font-size:18px;
+      font-weight:700;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 330px;
+    }
+    .subtitle{
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 330px;
+    }
+    .iconBtn{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      border-radius: 14px;
+      padding:10px 12px;
+      font-size:14px;
+      box-shadow: 0 6px 16px rgba(0,0,0,.22);
+      cursor:pointer;
+      user-select:none;
+      touch-action: manipulation;
+    }
+    .iconBtn:active{transform: scale(.99); opacity:.95;}
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .stat{
+      background: rgba(255,255,255,.03);
+      border:1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 12px;
+    }
+    .stat .label{font-size:12px; color:var(--muted);}
+    .stat .value{font-size:28px; font-weight:800; margin-top:6px;}
+    .controls{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .bigBtn{
+      grid-column: 1 / -1;
+      border: 0;
+      border-radius: 20px;
+      padding: 16px 14px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #06101f;
+      background: linear-gradient(180deg, rgba(78,161,255,1), rgba(78,161,255,.78));
+      box-shadow: 0 14px 30px rgba(78,161,255,.25);
+      cursor:pointer;
+      user-select:none;
+      touch-action: manipulation;
+    }
+    .bigBtn:active{transform: translateY(1px); filter: brightness(.98);}
+    .btn{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 12px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor:pointer;
+      user-select:none;
+      touch-action: manipulation;
+    }
+    .btn:active{transform: translateY(1px); opacity:.96;}
+    .btn.danger{
+      border-color: rgba(255,78,91,.35);
+      background: rgba(255,78,91,.10);
+      color: #ffd6d9;
+    }
+    .btn.muted{
+      color: var(--muted);
+    }
+    .gridWrap{
+      margin-top: 14px;
+    }
+    .gridTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .dotGrid{
+      display:grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 8px;
+    }
+    .dot{
+      aspect-ratio: 1 / 1;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
+    }
+    .dot.filled{
+      background: linear-gradient(180deg, rgba(33,192,122,1), rgba(33,192,122,.68));
+      border-color: rgba(33,192,122,.5);
+      box-shadow: 0 10px 18px rgba(33,192,122,.15);
+    }
+
+    /* Drawer */
+    .overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .18s ease;
+      z-index: 50;
+    }
+    .overlay.show{opacity:1; pointer-events:auto;}
+    .drawer{
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: min(84vw, 360px);
+      padding: calc(16px + var(--safe-top)) 14px calc(14px + var(--safe-bottom)) calc(14px + var(--safe-left));
+      background: linear-gradient(180deg, rgba(18,26,38,.98), rgba(12,18,28,.98));
+      border-right: 1px solid var(--border);
+      transform: translateX(-102%);
+      transition: transform .22s ease;
+      z-index: 60;
+      box-shadow: 20px 0 50px rgba(0,0,0,.45);
+      overflow:auto;
+    }
+    .drawer.show{transform: translateX(0);}
+    .drawerHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 12px;
+    }
+    .drawerTitle{
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .themeList{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top: 10px;
+    }
+    .themeItem{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+      border-radius: 16px;
+      padding: 12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .themeTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .themeName{
+      font-weight: 800;
+      font-size: 14px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 210px;
+    }
+    .badge{
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.03);
+      flex: 0 0 auto;
+    }
+    .themeActions{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .smallBtn{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px 10px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor:pointer;
+      user-select:none;
+      touch-action: manipulation;
+    }
+    .smallBtn:active{transform: translateY(1px); opacity:.96;}
+    .smallBtn.danger{
+      border-color: rgba(255,78,91,.35);
+      background: rgba(255,78,91,.10);
+      color: #ffd6d9;
+    }
+    .addRow{
+      margin-top: 12px;
+      display:flex;
+      gap:8px;
+    }
+    input[type="text"]{
+      width: 100%;
+      border-radius: 14px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 12px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    input[type="text"]::placeholder{color: rgba(159,176,196,.75);}
+    .hint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position: fixed;
+      inset: 0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 80;
+    }
+    .modalOverlay.show{display:flex;}
+    .modal{
+      width: min(92vw, 420px);
+      background: linear-gradient(180deg, rgba(18,26,38,.98), rgba(12,18,28,.98));
+      border:1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .modalTitle{
+      font-size: 16px;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+    .modalText{
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .modalBtns{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* Better thumb reach for iPhone */
+    @media (max-width: 430px){
+      .dotGrid{gap:7px;}
+      .dot{border-radius: 9px;}
+      .stat .value{font-size: 30px;}
+      .title{max-width: 260px;}
+      .subtitle{max-width: 260px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="topbar">
+      <button class="iconBtn" id="openMenuBtn" aria-label="打开侧边菜单">☰ 主题</button>
+      <div class="titleWrap">
+        <div class="title" id="currentThemeTitle">计数主题</div>
+        <div class="subtitle" id="currentThemeSub">每个主题最多 100 次（数据保存在 Cookie）</div>
+      </div>
+      <button class="iconBtn" id="quickResetBtn" aria-label="重置">⟲ 重置</button>
+    </div>
+
+    <div class="card">
+      <div class="stats">
+        <div class="stat">
+          <div class="label">已记录次数</div>
+          <div class="value" id="countVal">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">未记录次数</div>
+          <div class="value" id="remainVal">100</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="bigBtn" id="recordBtn">+1 记录一次</button>
+        <button class="btn" id="undoBtn">↩︎ 取消当前次数（撤销 -1）</button>
+        <button class="btn danger" id="resetBtn">⟲ 重置当前主题（需三次确认）</button>
+      </div>
+
+      <div class="gridWrap">
+        <div class="gridTitle">
+          <span>100 次进度</span>
+          <span id="gridTip">已完成 0 / 100</span>
+        </div>
+        <div class="dotGrid" id="dotGrid" aria-label="100次点阵"></div>
+      </div>
+    </div>
+
+    <div class="hint">
+      小提示：<br/>
+      1）点击 “+1 记录一次” 增加次数（最多 100）。<br/>
+      2）“取消当前次数” 用于撤销最近一次（-1）。<br/>
+      3）重置需要在弹窗内连续确认 3 次，防止误触。
+    </div>
+  </div>
+
+  <!-- Drawer -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="drawer" id="drawer" aria-label="侧边菜单">
+    <div class="drawerHeader">
+      <div class="drawerTitle">主题管理</div>
+      <button class="iconBtn" id="closeMenuBtn" aria-label="关闭侧边菜单">✕</button>
+    </div>
+
+    <div class="addRow">
+      <input type="text" id="newThemeInput" placeholder="输入新主题名称，例如：俯卧撑 / 背单词" maxlength="24" />
+      <button class="iconBtn" id="addThemeBtn">＋新增</button>
+    </div>
+
+    <div class="hint">
+      每个主题独立计数（0~100）。你可以在下面选择主题、修改名称或删除主题。
+    </div>
+
+    <div class="themeList" id="themeList"></div>
+  </aside>
+
+  <!-- Modal for triple confirm -->
+  <div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalTitle" id="modalTitle">重置确认</div>
+      <div class="modalText" id="modalText">你将要重置当前主题的计数为 0。需要连续确认 3 次。</div>
+      <div class="modalBtns">
+        <button class="btn muted" id="modalCancelBtn">取消</button>
+        <button class="btn danger" id="modalConfirmBtn">确认（1 / 3）</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========= Cookie 工具 =========
+    const COOKIE_KEY = "CounterThemes_v1";
+    function setCookie(name, value, days){
+      const d = new Date();
+      d.setTime(d.getTime() + days*24*60*60*1000);
+      const expires = "expires=" + d.toUTCString();
+      document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/;SameSite=Lax";
+    }
+    function getCookie(name){
+      const key = name + "=";
+      const parts = document.cookie.split(";").map(s => s.trim());
+      for (const p of parts){
+        if (p.startsWith(key)) return decodeURIComponent(p.substring(key.length));
+      }
+      return null;
+    }
+
+    // ========= 数据结构 =========
+    // state = { themes: [{id, name, count}], currentId }
+    const TOTAL = 100;
+    function uid(){
+      return "t_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+    }
+
+    function defaultState(){
+      const id = uid();
+      return {
+        themes: [{ id, name: "默认主题", count: 0 }],
+        currentId: id
+      };
+    }
+
+    function loadState(){
+      try{
+        const raw = getCookie(COOKIE_KEY);
+        if (!raw) return defaultState();
+        const obj = JSON.parse(raw);
+        if (!obj || !Array.isArray(obj.themes) || !obj.currentId) return defaultState();
+        // 修正异常数据
+        obj.themes = obj.themes
+          .filter(t => t && typeof t.id === "string" && typeof t.name === "string")
+          .map(t => ({ id: t.id, name: t.name.slice(0,24), count: clampInt(t.count, 0, TOTAL) }));
+        if (obj.themes.length === 0) return defaultState();
+        if (!obj.themes.some(t => t.id === obj.currentId)) obj.currentId = obj.themes[0].id;
+        return obj;
+      }catch(e){
+        return defaultState();
+      }
+    }
+
+    function saveState(){
+      // Cookie 空间有限，尽量精简
+      const slim = {
+        themes: state.themes.map(t => ({id:t.id, name:t.name, count:t.count})),
+        currentId: state.currentId
+      };
+      setCookie(COOKIE_KEY, JSON.stringify(slim), 365);
+    }
+
+    function clampInt(n, min, max){
+      n = Number.isFinite(+n) ? Math.trunc(+n) : min;
+      if (n < min) return min;
+      if (n > max) return max;
+      return n;
+    }
+
+    let state = loadState();
+
+    // ========= DOM =========
+    const countVal = document.getElementById("countVal");
+    const remainVal = document.getElementById("remainVal");
+    const gridTip = document.getElementById("gridTip");
+    const dotGrid = document.getElementById("dotGrid");
+    const currentThemeTitle = document.getElementById("currentThemeTitle");
+
+    const recordBtn = document.getElementById("recordBtn");
+    const undoBtn = document.getElementById("undoBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const quickResetBtn = document.getElementById("quickResetBtn");
+
+    const overlay = document.getElementById("overlay");
+    const drawer = document.getElementById("drawer");
+    const openMenuBtn = document.getElementById("openMenuBtn");
+    const closeMenuBtn = document.getElementById("closeMenuBtn");
+    const themeList = document.getElementById("themeList");
+    const newThemeInput = document.getElementById("newThemeInput");
+    const addThemeBtn = document.getElementById("addThemeBtn");
+
+    const modalOverlay = document.getElementById("modalOverlay");
+    const modalConfirmBtn = document.getElementById("modalConfirmBtn");
+    const modalCancelBtn = document.getElementById("modalCancelBtn");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalText = document.getElementById("modalText");
+
+    // ========= 业务 =========
+    function getCurrentTheme(){
+      return state.themes.find(t => t.id === state.currentId) || state.themes[0];
+    }
+
+    function renderDots(count){
+      dotGrid.innerHTML = "";
+      const frag = document.createDocumentFragment();
+      for (let i=0;i<TOTAL;i++){
+        const d = document.createElement("div");
+        d.className = "dot" + (i < count ? " filled" : "");
+        frag.appendChild(d);
+      }
+      dotGrid.appendChild(frag);
+    }
+
+    function renderThemes(){
+      themeList.innerHTML = "";
+      const frag = document.createDocumentFragment();
+
+      state.themes.forEach(theme => {
+        const wrap = document.createElement("div");
+        wrap.className = "themeItem";
+
+        const top = document.createElement("div");
+        top.className = "themeTop";
+
+        const name = document.createElement("div");
+        name.className = "themeName";
+        name.textContent = theme.name;
+
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.textContent = `${theme.count}/${TOTAL}`;
+
+        top.appendChild(name);
+        top.appendChild(badge);
+
+        const actions = document.createElement("div");
+        actions.className = "themeActions";
+
+        const btnSelect = document.createElement("button");
+        btnSelect.className = "smallBtn";
+        btnSelect.textContent = (theme.id === state.currentId) ? "当前" : "选择";
+        btnSelect.disabled = (theme.id === state.currentId);
+        btnSelect.style.opacity = btnSelect.disabled ? "0.6" : "1";
+        btnSelect.addEventListener("click", () => {
+          state.currentId = theme.id;
+          saveState();
+          renderAll();
+          closeDrawer();
+        });
+
+        const btnEdit = document.createElement("button");
+        btnEdit.className = "smallBtn";
+        btnEdit.textContent = "修改";
+        btnEdit.addEventListener("click", () => {
+          const newName = prompt("输入新的主题名称（最多24字）", theme.name);
+          if (newName === null) return;
+          const trimmed = newName.trim().slice(0,24);
+          if (!trimmed){
+            alert("主题名称不能为空。");
+            return;
+          }
+          theme.name = trimmed;
+          saveState();
+          renderAll();
+        });
+
+        const btnDel = document.createElement("button");
+        btnDel.className = "smallBtn danger";
+        btnDel.textContent = "删除";
+        btnDel.addEventListener("click", () => {
+          if (state.themes.length === 1){
+            alert("至少保留 1 个主题。");
+            return;
+          }
+          const ok = confirm(`确定删除主题「${theme.name}」吗？该主题计数会一并删除。`);
+          if (!ok) return;
+
+          state.themes = state.themes.filter(t => t.id !== theme.id);
+          if (state.currentId === theme.id){
+            state.currentId = state.themes[0].id;
+          }
+          saveState();
+          renderAll();
+        });
+
+        actions.appendChild(btnSelect);
+        actions.appendChild(btnEdit);
+        actions.appendChild(btnDel);
+
+        wrap.appendChild(top);
+        wrap.appendChild(actions);
+
+        frag.appendChild(wrap);
+      });
+
+      themeList.appendChild(frag);
+    }
+
+    function renderAll(){
+      const t = getCurrentTheme();
+      currentThemeTitle.textContent = t.name;
+
+      countVal.textContent = t.count;
+      remainVal.textContent = (TOTAL - t.count);
+      gridTip.textContent = `已完成 ${t.count} / ${TOTAL}`;
+
+      recordBtn.textContent = t.count >= TOTAL ? "已满 100 次" : "+1 记录一次";
+      recordBtn.disabled = t.count >= TOTAL;
+      recordBtn.style.opacity = recordBtn.disabled ? "0.6" : "1";
+
+      undoBtn.disabled = t.count <= 0;
+      undoBtn.style.opacity = undoBtn.disabled ? "0.6" : "1";
+
+      renderDots(t.count);
+      renderThemes();
+    }
+
+    function addOne(){
+      const t = getCurrentTheme();
+      if (t.count >= TOTAL) return;
+      t.count += 1;
+      saveState();
+      renderAll();
+      // 轻微触感反馈（支持的浏览器会生效）
+      if (navigator.vibrate) navigator.vibrate(8);
+    }
+
+    function undoOne(){
+      const t = getCurrentTheme();
+      if (t.count <= 0) return;
+      t.count -= 1;
+      saveState();
+      renderAll();
+      if (navigator.vibrate) navigator.vibrate([6, 20, 6]);
+    }
+
+    // ========= 三次确认重置 =========
+    let resetStep = 0;
+    function openResetModal(){
+      resetStep = 0;
+      const t = getCurrentTheme();
+      modalTitle.textContent = "重置确认（需要三次）";
+      modalText.textContent = `你将要把主题「${t.name}」的计数从 ${t.count} 重置为 0。请连续确认 3 次防止误触。`;
+      modalConfirmBtn.textContent = `确认（1 / 3）`;
+      modalOverlay.classList.add("show");
+    }
+    function closeResetModal(){
+      modalOverlay.classList.remove("show");
+    }
+    function confirmReset(){
+      resetStep += 1;
+      if (resetStep < 3){
+        modalConfirmBtn.textContent = `确认（${resetStep+1} / 3）`;
+        if (navigator.vibrate) navigator.vibrate(10);
+        return;
+      }
+      const t = getCurrentTheme();
+      t.count = 0;
+      saveState();
+      renderAll();
+      closeResetModal();
+      if (navigator.vibrate) navigator.vibrate([12, 30, 12]);
+    }
+
+    // ========= Drawer 控制 =========
+    function openDrawer(){
+      overlay.classList.add("show");
+      drawer.classList.add("show");
+    }
+    function closeDrawer(){
+      overlay.classList.remove("show");
+      drawer.classList.remove("show");
+    }
+
+    // ========= 事件绑定 =========
+    recordBtn.addEventListener("click", addOne);
+    undoBtn.addEventListener("click", undoOne);
+
+    resetBtn.addEventListener("click", openResetModal);
+    quickResetBtn.addEventListener("click", openResetModal);
+
+    modalCancelBtn.addEventListener("click", closeResetModal);
+    modalConfirmBtn.addEventListener("click", confirmReset);
+    modalOverlay.addEventListener("click", (e) => {
+      if (e.target === modalOverlay) closeResetModal();
+    });
+
+    openMenuBtn.addEventListener("click", openDrawer);
+    closeMenuBtn.addEventListener("click", closeDrawer);
+    overlay.addEventListener("click", closeDrawer);
+
+    addThemeBtn.addEventListener("click", () => {
+      const name = (newThemeInput.value || "").trim().slice(0,24);
+      if (!name){
+        alert("请输入主题名称。");
+        return;
+      }
+      const id = uid();
+      state.themes.unshift({ id, name, count: 0 });
+      state.currentId = id;
+      newThemeInput.value = "";
+      saveState();
+      renderAll();
+    });
+    newThemeInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addThemeBtn.click();
+    });
+
+    // 双击标题快速打开主题菜单（方便单手）
+    currentThemeTitle.addEventListener("dblclick", openDrawer);
+
+    // ========= 初始化 =========
+    renderAll();
+  </script>
+</body>
+</html>
